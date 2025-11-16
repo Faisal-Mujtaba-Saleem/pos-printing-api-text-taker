@@ -1,6 +1,11 @@
 name,roomType,price,capacity,features,img,status
-Ocean View Suite,Suite,12000,4,"WiFi, Air Conditioning, Balcony, TV",https://via.placeholder.com/400x300,available
-Deluxe King Room,Deluxe,8500,2,"WiFi, Mini Fridge, TV",https://via.placeholder.com/400x300,available
-Standard Twin,Standard,6000,2,"WiFi, Fan, TV",https://via.placeholder.com/400x300,maintenance
-Family Suite,Family,15000,5,"WiFi, Kitchenette, Balcony, TV, Air Conditioning",https://via.placeholder.com/400x300,available
-Garden Deluxe,Deluxe,9000,3,"WiFi, Garden View, Air Conditioning",https://via.placeholder.com/400x300,available
+Room 101,Suite,12000,4,"WiFi,TV,AC,Bathroom","/rooms/16256-113891-f65416992_3xl (1).jpg",available
+Room 102,Deluxe,9000,3,"WiFi,TV,AC","/rooms/16256-113891-f65416992_3xl.jpg",available
+Room 103,Standard,6000,2,"WiFi,TV","/rooms/16256-113891-f65416994_3xl.jpg",available
+Room 104,Deluxe,9500,3,"WiFi,TV,AC,Mini Fridge","/rooms/Deluxe-1-min-1.jpg",available
+Room 105,Deluxe,9800,3,"WiFi,TV,AC,Bathroom","/rooms/Deluxe-2-min-1.jpeg",available
+Room 106,Standard,6500,2,"WiFi,TV","/rooms/Deluxe-3-min.jpg",available
+Room 107,Family,14000,5,"WiFi,TV,AC,Bathroom,Mini Fridge","/rooms/Deluxe-Twin-1-min.jpg",available
+Room 108,Family,14500,5,"WiFi,TV,AC,Bathroom","/rooms/Deluxe-Twin-5-min.jpg",available
+Room 109,Suite,12500,4,"WiFi,TV,AC,Bathroom,Mini Fridge","/rooms/Premium-4-min-1.jpg",available
+Room 110,Suite,13000,4,"WiFi,TV,AC,Bathroom","/rooms/Premium-5-min.jpg",available

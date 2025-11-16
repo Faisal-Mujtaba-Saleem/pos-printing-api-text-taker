@@ -42,7 +42,7 @@ export default function BookingsTable() {
       setError(null);
       try {
         const res = await fetch("/api/v1/bookings", { signal: ac.signal });
-        if (!res.ok && !res.status === 404)
+        if (!res.ok && res.status !== 404)
           throw new Error(`Failed to fetch bookings (${res.status})`);
         const data = await res.json();
         setBookings(Array.isArray(data) ? data : data?.data || []);

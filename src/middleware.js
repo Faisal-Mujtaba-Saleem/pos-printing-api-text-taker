@@ -9,22 +9,28 @@ const isPublicRoute = createRouteMatcher([
 ]);
 
 // ✅ Step 2: Middleware logic
-export default clerkMiddleware(async (auth, req) => {
-  const { userId } = await auth();
-  const requestedUrl = req.nextUrl;
+export default clerkMiddleware(
+  async (auth, req) => {
+    const { userId } = await auth();
+    const requestedUrl = req.nextUrl;
 
-  // If the current route is NOT public, protect it
-  if (!isPublicRoute(req) && !userId) {
-    const redirectUrl = new URL('/sign-in', req.url);
-    redirectUrl.searchParams.set('redirect_url', requestedUrl.pathname);
+    // If the current route is NOT public, protect it
+    if (!isPublicRoute(req) && !userId) {
+      const redirectUrl = new URL('/sign-in', req.url);
+      redirectUrl.searchParams.set('redirect_url', requestedUrl.pathname);
 
-    // ⚡️ Direct, clean redirect — no blank screen
-    NextResponse.redirect(redirectUrl)
+      // ⚡️ Direct, clean redirect — no blank screen
+      NextResponse.redirect(redirectUrl)
+    }
+
+    if (req.nextUrl.pathname.startsWith("/api") && !userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // ✅ Otherwise allow through immediately
+    return NextResponse.next();
   }
-
-  // ✅ Otherwise allow through immediately
-  return NextResponse.next();
-});
+);
 
 // ✅ Step 3: Apply middleware to all app routes except static assets
 export const config = {

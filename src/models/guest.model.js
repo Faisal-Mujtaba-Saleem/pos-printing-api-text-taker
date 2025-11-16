@@ -2,6 +2,12 @@ import mongoose from "mongoose";
 
 const guestSchema = new mongoose.Schema(
   {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+
     fullName: {
       type: String,
       required: true
@@ -39,9 +45,12 @@ const guestSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// static method
-guestSchema.statics.isGuestExists = async function (email, contactNumber, cnic) {
+// static methods
+
+// Check if a guest exists based on email, contact number, or CNIC
+guestSchema.statics.isGuestExists = async function (user, { email, contactNumber, cnic }) {
   const existingGuest = await this.findOne({
+    user,
     $or: [
       { email },
       { contactNumber },
@@ -52,13 +61,14 @@ guestSchema.statics.isGuestExists = async function (email, contactNumber, cnic) 
   return existingGuest;
 };
 
+// Check if a guest is already booked in overlapping bookings
 guestSchema.statics.isGuestBooked = async function (
-  checkIn,
-  checkOut,
+  user,
+  { checkIn, checkOut },
   { cnic, email, contactNumber }
 ) {
   // 1️⃣ Step: Find if guest already exists (based on CNIC/email/contactNumber)
-  const existingGuest = await this.isGuestExists(email, contactNumber, cnic);
+  const existingGuest = await this.isGuestExists(user, { email, contactNumber, cnic });
 
   if (!existingGuest) return false; // No such guest yet → not booked before
 

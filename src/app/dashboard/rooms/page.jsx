@@ -1,12 +1,12 @@
 "use client";
 
 import React from "react";
-import DashboardSharedHeader from "@/components/DashboardSharedHeader";
-import RoomsTable from "@/components/RoomsTable";
+import DashboardSharedHeader from "@/components/shared/DashboardSharedHeader";
+import RoomsTable from "@/components/rooms/RoomsTable";
 import { SiHomebridge } from "react-icons/si";
 import { IoAdd } from "react-icons/io5";
 import { useDialog } from "@/contexts/modal-context/context";
-import AddRoomForm from "@/components/AddRoomForm";
+import AddRoomForm from "@/components/rooms/AddRoomForm";
 
 const AddBtn = () => {
   const { populateModal } = useDialog();

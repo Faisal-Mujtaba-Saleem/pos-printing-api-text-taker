@@ -43,7 +43,6 @@ export default async function convertHTML2PDF(html, { savePDF = false, generateH
   try {
     const page = await browser.newPage();
     await page.setContent(htmlDoc, { waitUntil: "networkidle0" });
-    console.log(`htmlDoc, ${htmlDoc}`);
 
     // 5️⃣ Generate PDF directly to file (no need for fs.writeFileSync)
     if (savePDF) {

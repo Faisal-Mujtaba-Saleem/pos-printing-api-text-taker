@@ -1,8 +1,8 @@
 "use client";
 
 import { Fragment, useEffect, useState } from "react";
-import DashboardTopBar from "./DashboardTopBar";
-import { DashboardSideBar } from "./DashboardSidebar";
+import DashboardTopBar from "../shared/DashboardTopBar";
+import { DashboardSideBar } from "../shared/DashboardSidebar";
 import { Transition } from "@headlessui/react";
 
 export default function DashboardLayoutClient(props) {

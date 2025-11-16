@@ -3,6 +3,12 @@ import "@/models/room.model";
 
 const bookingSchema = new mongoose.Schema(
   {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+
     room: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Room",
@@ -27,12 +33,19 @@ const bookingSchema = new mongoose.Schema(
       default: "Pending",
     },
 
-    guests: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Guest",
+    guests: {
+      type: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Guest",
+        },
+      ],
+      required: true,
+      validate: {
+        validator: (v) => Array.isArray(v) && v.length >= 1 && new Set(v.map(String)).size === v.length,
+        message: "At least one guest is required, and guest IDs must be unique",
       },
-    ],
+    },
   },
   { timestamps: true }
 );
@@ -81,6 +94,21 @@ bookingSchema.pre(["findOneAndUpdate", "updateOne"], function (next) {
 
   this.setUpdate(update);
   next();
+});
+
+// 🧩 post('findOneAndDelete') - cascade delete related guests
+bookingSchema.post("findOneAndDelete", async function (doc) {
+  if (!doc) return;
+  // delete the related guests
+  const Guest = mongoose.model("Guest");
+  const otherBookings = await Booking.countDocuments({
+    guests: { $in: doc.guests },
+    _id: { $ne: doc._id }
+  });
+  
+  if (otherBookings === 0) {
+    await Guest.deleteMany({ _id: { $in: doc.guests } });
+  }
 });
 
 export const Booking =

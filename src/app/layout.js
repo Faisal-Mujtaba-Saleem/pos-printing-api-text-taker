@@ -4,7 +4,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { ElementsHeightsProvider } from "@/contexts/elements-heights-context/context";
 import ModalContextProvider from "@/contexts/modal-context/context";
 import RoomsContextProvider from "@/contexts/rooms-context/context";
-import AppModal from "@/components/AppModal";
+import AppModal from "@/components/shared/AppModal";
 import ToastProvider from "./providers/ToastProvider";
 import "react-toastify/dist/ReactToastify.css";
 

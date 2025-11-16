@@ -1,9 +1,9 @@
 'use server';
 
 import fs from "fs";
-import convertHTML2PDF from "@/utlis/convertHTML2PDF";
-import { print, getDefaultPrinter } from "pdf-to-printer";
 import path from "path";
+import convertHTML2PDF from "@/utlis/convertHTML2PDF";
+import { getDefaultPrinter, print } from "pdf-to-printer";
 
 export async function printBookingReceipt(prevState, formData) {
   try {

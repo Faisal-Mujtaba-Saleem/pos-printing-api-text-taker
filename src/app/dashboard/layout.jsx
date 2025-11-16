@@ -1,5 +1,5 @@
 import React from "react";
-import DashboardLayoutClient from "@/components/DashboardLayoutClient";
+import DashboardLayoutClient from "@/components/dashboard/DashboardLayoutClient";
 
 export const metadata = {
   title: "Dashboard - Hotel Management",

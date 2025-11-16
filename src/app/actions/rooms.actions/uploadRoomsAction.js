@@ -2,7 +2,9 @@
 
 import "@/lib/mongoose/connectDB";
 import Papa from "papaparse";
+import { User } from "@/models/user.model";
 import { Room } from "@/models/room.model";
+import { currentUser } from "@clerk/nextjs/server";
 
 async function fileToText(file) {
   const buffer = Buffer.from(await file.arrayBuffer());
@@ -40,6 +42,7 @@ export async function uploadRoomsAction(formData) {
           : "available";
 
         return {
+          user: r.user,
           name: r.name,
           roomType,
           price: r.price ? Number(r.price) : undefined,
@@ -58,12 +61,15 @@ export async function uploadRoomsAction(formData) {
 
     if (!rooms.length) throw new Error("No valid room data found in CSV");
 
+    const clerkUserId = (await currentUser()).id;
+    const user = await User.findOne({ clerkUserId });
+
     // Save rooms one by one using .save()
     const createdRooms = [];
     const saveErrors = [];
     for (const r of rooms) {
       try {
-        const roomDoc = new Room(r);
+        const roomDoc = new Room({ ...r, user: user._id });
         const saved = await roomDoc.save();
         createdRooms.push(
           JSON.parse(JSON.stringify(saved))

@@ -1,4 +1,4 @@
-import { UserServices } from "@/services/user.service";
+import { UserServices } from "@/services/user.services";
 import "@/lib/mongoose/connectDB";
 import { NextResponse } from "next/server";
 

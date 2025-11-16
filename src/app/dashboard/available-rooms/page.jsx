@@ -1,20 +1,17 @@
 "use client";
 
 import React, { useMemo, useState, useEffect } from "react";
-import Image from "next/image";
 import {
   MagnifyingGlassIcon,
   FunnelIcon,
   Squares2X2Icon,
   Bars3Icon,
 } from "@heroicons/react/24/outline";
-import { FaBed } from "react-icons/fa";
 import { useSearchParams } from "next/navigation";
-import { formatCurrency } from "@/utlis/formatCurrency";
 import { useDialog } from "@/contexts/modal-context/context";
-import RoomCard from "@/components/RoomCard";
-import BookingForm from "@/components/BookingForm";
-import calculateNights from "@/utlis/date-time-utils/calculateNights";
+import RoomCard from "@/components/rooms/RoomCard";
+import BookingForm from "@/components/bookings/BookingForm";
+import RoomView from "@/components/rooms/RoomView";
 
 /* ---------- Main Page ---------- */
 export default function Page() {
@@ -61,9 +58,11 @@ export default function Page() {
         if (checkOut) params.append("checkOut", checkOut);
 
         const res = await fetch(`/api/v1/rooms/available?${params.toString()}`);
-        if (!res.ok) throw new Error(`Server returned ${res.status}`);
+        if (!res.ok && res.status !== 404)
+          throw new Error(`Server returned ${res.status}`);
+
         const data = await res.json();
-        const fetchedRooms = (data || []).map((r) => ({
+        const fetchedRooms = (Array.isArray(data) ? data : []).map((r) => ({
           id: r._id || r.room_id || r.id,
           room_no: r.room_no || r.roomNo || r.roomNumber || r.room_id || r._id,
           name: r.name,
@@ -103,103 +102,10 @@ export default function Page() {
 
   function handleViewDetails(selectedRoom) {
     const modalTitle = `Room Details - ${selectedRoom.name || "Unnamed room"}`;
-    // Try to read checkInDate/checkOut from URL search params to calculate total
-    const nights = useMemo(
-      () => calculateNights(checkIn, checkOut),
-      [checkIn, checkOut]
+    populateModal(
+      modalTitle,
+      <RoomView room={selectedRoom} checkIn={checkIn} checkOut={checkOut} />
     );
-
-    const modalDescriptionJSX = (
-      <div className="space-y-6 p-4 bg-gradient-to-b from-white to-gray-50 rounded-2xl shadow-inner">
-        {/* Room Header Section */}
-        <div className="flex items-start gap-5 border-b border-gray-100 pb-4">
-          <div className="relative w-36 h-24 bg-gray-100 rounded-xl overflow-hidden shrink-0 shadow-sm">
-            {selectedRoom.img ? (
-              <Image
-                src={selectedRoom.img}
-                alt={selectedRoom.name || "Room image"}
-                fill
-                className="object-cover"
-              />
-            ) : (
-              <div className="flex items-center justify-center h-full">
-                <FaBed className="text-blue-500 text-4xl opacity-80" />
-              </div>
-            )}
-          </div>
-
-          <div className="flex-1">
-            <h4 className="text-xl font-semibold text-gray-900 tracking-tight">
-              {selectedRoom.name || "Unnamed Room"}{" "}
-              <span className="font-medium text-gray-700">
-                - {selectedRoom.room_no ?? "—"}
-              </span>
-            </h4>
-            <p className="text-sm text-gray-500 mt-1">
-              {selectedRoom.type || "Standard"} • Max{" "}
-              <span className="font-medium text-gray-700">
-                {selectedRoom.capacity ?? "—"}
-              </span>{" "}
-              guests
-            </p>
-
-            <p className="mt-3 text-lg font-semibold text-blue-600">
-              {formatCurrency(selectedRoom.price ?? 0)}
-              <span className="text-sm font-normal text-gray-500">
-                {" "}
-                / night
-              </span>
-            </p>
-          </div>
-        </div>
-
-        {/* Features Section */}
-        <section>
-          <h5 className="text-sm font-semibold text-gray-800 uppercase tracking-wide mb-2">
-            Room Features
-          </h5>
-          <div className="flex flex-wrap gap-2">
-            {(selectedRoom.features || []).length > 0 ? (
-              selectedRoom.features.map((f) => (
-                <span
-                  key={f}
-                  className="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-xs font-medium border border-blue-100"
-                >
-                  {f}
-                </span>
-              ))
-            ) : (
-              <span className="text-sm text-gray-400 italic">
-                No features listed
-              </span>
-            )}
-          </div>
-        </section>
-
-        {/* Total / Pricing Summary */}
-        <div className="pt-4 border-t border-gray-100 flex flex-col items-end">
-          {nights ? (
-            <div className="text-right">
-              <div className="text-sm text-gray-500 mb-1">
-                Total for {nights} night{nights > 1 ? "s" : ""}:
-              </div>
-              <div className="text-2xl font-bold text-gray-900">
-                {formatCurrency((selectedRoom.price ?? 0) * nights)}
-              </div>
-              <div className="text-xs text-gray-400">
-                ({formatCurrency(selectedRoom.price ?? 0)} × {nights})
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-500 italic">
-              Select check-in and check-out dates to see total.
-            </div>
-          )}
-        </div>
-      </div>
-    );
-
-    populateModal(modalTitle, modalDescriptionJSX);
   }
 
   const filtered = useMemo(() => {
@@ -252,21 +158,19 @@ export default function Page() {
 
           <div className="flex bg-gray-100 rounded-lg">
             <button
-              className={`p-2 rounded-md ${
-                view === "grid"
+              className={`p-2 rounded-md ${view === "grid"
                   ? "bg-white shadow text-blue-600"
                   : "text-gray-500"
-              }`}
+                }`}
               onClick={() => setView("grid")}
             >
               <Squares2X2Icon className="w-5 h-5" />
             </button>
             <button
-              className={`p-2 rounded-md ${
-                view === "list"
+              className={`p-2 rounded-md ${view === "list"
                   ? "bg-white shadow text-blue-600"
                   : "text-gray-500"
-              }`}
+                }`}
               onClick={() => setView("list")}
             >
               <Bars3Icon className="w-5 h-5" />
@@ -364,11 +268,10 @@ export default function Page() {
       </section>
 
       <section
-        className={`grid gap-4 ${
-          view === "grid"
+        className={`grid gap-4 ${view === "grid"
             ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
             : "grid-cols-1"
-        }`}
+          }`}
       >
         {filtered.length === 0 ? (
           <div className="bg-white border rounded-lg p-6 text-center shadow-sm">
@@ -380,6 +283,8 @@ export default function Page() {
               className="px-4 py-2 rounded-md bg-blue-600 text-white font-semibold hover:bg-blue-700"
               onClick={() => {
                 setTypeFilter("All");
+                setSortBy("recommended");
+                setGuestRange({ min: "", max: "" });
                 setQuery("");
               }}
             >

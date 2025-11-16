@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 
 const roomSchema = new mongoose.Schema(
   {
+    user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+
     room_no: {
       type: Number,
       unique: true,
@@ -40,6 +42,19 @@ roomSchema.pre("save", async function (next) {
     next();
   } catch (err) {
     next(err);
+  }
+});
+
+// Cascade delete related bookings when a room is deleted
+roomSchema.post("findOneAndDelete", async function (doc) {
+  if (!doc) return;
+
+  // delete related bookings & their guests
+  const Booking = mongoose.model("Booking");
+  const bookings = await Booking.find({ room: doc._id });
+
+  for (const booking of bookings) {
+    await Booking.findOneAndDelete({ _id: booking._id });
   }
 });
 

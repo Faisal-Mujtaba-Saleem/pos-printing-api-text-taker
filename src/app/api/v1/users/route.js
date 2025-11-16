@@ -1,50 +1,36 @@
-import { UserServices } from "@/services/user.service";
-import "@/lib/mongoose/connectDB";
+import '@/lib/mongoose/connectDB';
+import { currentUser } from "@clerk/nextjs/server";
+import { User } from '@/models/user.model';
+import { ServerError } from '@/utlis/ServerError';
 import { NextResponse } from "next/server";
 
-export async function GET(request) {
+export async function POST(req, { params }) {
   try {
-    const result = await UserServices.getAllUserFromDB();
-    return NextResponse.json(
-      {
-        success: true,
-        message: "User fetch Successfully",
-        data: result,
-      },
-      { status: 200 }
-    );
-  } catch (error) {
-    return NextResponse.json(
-      {
-        success: false,
-        message: error.message || "Something went wrong.",
-        data: null,
-      },
-      { status: 500 }
-    );
-  }
-}
+    const user = await currentUser();
 
-export async function POST(request) {
-  try {
-    const userData = req.body;
-    const result = await UserServices.storeUserToDB(userData);
-    return NextResponse.json(
-      {
-        success: true,
-        message: "User Successfully Created",
-        data: result,
-      },
-      { status: 200 }
-    );
+    if (!user) {
+      throw new ServerError("Unauthorized", 401);
+    }
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ clerkUserId: user.id });
+    console.log(existingUser);
+
+    if (!existingUser) {
+      const newUser = await User.create({
+        clerkUserId: user.id,
+        fullName: user.fullName,
+        email: user.emailAddresses[0]?.emailAddress || "",
+        role: params?.role || "admin",
+      });
+      return NextResponse.json({ user: newUser });
+    }
+
+    return NextResponse.json({ user: existingUser });
   } catch (error) {
     return NextResponse.json(
-      {
-        success: false,
-        message: error.message || "Something went wrong.",
-        data: null,
-      },
-      { status: 500 }
+      { error: error.message || "Internal Server Error" },
+      { status: error.status || 500 }
     );
   }
 }

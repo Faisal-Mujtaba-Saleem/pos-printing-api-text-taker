@@ -1,11 +1,11 @@
 "use client";
 
 import React from "react";
-import DashboardSharedHeader from "@/components/DashboardSharedHeader";
-import BookingsTable from "@/components/BookingsTable";
+import DashboardSharedHeader from "@/components/shared/DashboardSharedHeader";
+import BookingsTable from "@/components/bookings/BookingsTable";
 import { FaRegCalendarCheck } from "react-icons/fa6";
 import { TbCalendarUser } from "react-icons/tb";
-import { CheckBookingAvailability } from "@/components/CheckBookingAvailability";
+import { CheckBookingAvailability } from "@/components/bookings/CheckBookingAvailability";
 import { Disclosure, DisclosureButton, DisclosurePanel } from "@headlessui/react";
 import { ChevronUpIcon } from "@heroicons/react/24/solid";
 

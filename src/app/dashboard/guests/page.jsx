@@ -1,8 +1,8 @@
 "use client";
 
 import React from 'react'
-import DashboardSharedHeader from '@/components/DashboardSharedHeader'
-import GuestsTable from '@/components/GuestsTable';
+import DashboardSharedHeader from '@/components/shared/DashboardSharedHeader'
+import GuestsTable from '@/components/guests/GuestsTable';
 import { FaUserShield } from 'react-icons/fa6';
 
 export default function page() {

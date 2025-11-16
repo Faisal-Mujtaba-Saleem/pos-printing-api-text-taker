@@ -1,10 +1,20 @@
 import "@/lib/mongoose/connectDB";
+import { User } from "@/models/user.model";
+import { BookingServices } from "@/services/booking.services";
+import { ServerError } from "@/utlis/ServerError";
+import { currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { BookingServices } from "@/services/booking.service";
 
 export async function GET(_, { params }) {
   try {
-    const result = await BookingServices.getBookingByIdFromDB(params._id);
+    const clerkUserId = (await currentUser()).id;
+    const user = await User.findOne({ clerkUserId });
+
+    if (!user) throw ServerError("Authenticated user not found in database", 404);
+
+    const bookingServices = new BookingServices(user._id);
+    const result = await bookingServices.getSingleBookingFromDB(params._id);
+
     return NextResponse.json(result, { status: 200 });
   } catch (error) {
     console.log(error);
@@ -17,8 +27,18 @@ export async function GET(_, { params }) {
 
 export async function PATCH(req, { params }) {
   try {
+    params = await params;
+
     const updates = await req.json();
-    const result = await BookingServices.updateBookingInDB(params._id, updates);
+
+    const clerkUserId = (await currentUser()).id;
+    const user = await User.findOne({ clerkUserId });
+
+    if (!user) throw ServerError("Authenticated user not found in database", 404);
+
+    const bookingServices = new BookingServices(user._id);
+    const result = await bookingServices.updateBookingInDB(params._id, updates);
+
     return NextResponse.json(result, { status: 200 });
   } catch (error) {
     return NextResponse.json(
@@ -30,7 +50,14 @@ export async function PATCH(req, { params }) {
 
 export async function DELETE(_, { params }) {
   try {
-    const result = await BookingServices.deleteBookingFromDB(params._id);
+    const clerkUserId = (await currentUser()).id;
+    const user = await User.findOne({ clerkUserId });
+
+    if (!user) throw ServerError("Authenticated user not found in database", 404);
+
+    const bookingServices = new BookingServices(user._id);
+    const deletedBooking = await bookingServices.deleteBookingFromDB(params._id);
+
     return NextResponse.json(result, { status: 200 });
   } catch (error) {
     return NextResponse.json(

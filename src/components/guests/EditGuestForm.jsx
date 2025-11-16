@@ -67,9 +67,7 @@ export default function EditGuestForm({ guest, onUpdate }) {
   };
 
   return (
-    <div className="p-4 max-w-lg">
-      <DialogTitle className="text-lg font-semibold border-b pb-3">Edit Guest</DialogTitle>
-
+    <div className="p-2 max-w-lg">
       <form onSubmit={handleSubmit} className="mt-4 space-y-4">
         <div>
           <label className="text-sm font-medium text-gray-700">Full Name</label>

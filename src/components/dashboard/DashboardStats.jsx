@@ -50,6 +50,7 @@ export default function DashboardStats() {
           bookingsRes,
           roomsRes,
           availableRes,
+          maintenanceRes,
           bookedRes,
         ] = await Promise.all([
           fetch("/api/v1/reports", { cache: "no-store" }),
@@ -57,6 +58,7 @@ export default function DashboardStats() {
           fetch("/api/v1/bookings", { cache: "no-store" }),
           fetch("/api/v1/rooms", { cache: "no-store" }),
           fetch("/api/v1/rooms?status=available", { cache: "no-store" }),
+          fetch("/api/v1/rooms?status=maintenance", { cache: "no-store" }),
           fetch("/api/v1/rooms/booked", { cache: "no-store" }),
         ]);
 
@@ -66,23 +68,41 @@ export default function DashboardStats() {
         const guestsCount = guestsRes.ok ? (await guestsRes.json()).length : 0;
         const bookingsList = bookingsRes.ok ? await bookingsRes.json() : [];
         const totalRooms = roomsRes.ok ? (await roomsRes.json()).length : 0;
-        const availableRooms = availableRes.ok ? (await availableRes.json()).length : 0;
+        const availableRooms = availableRes.ok
+          ? (await availableRes.json()).length
+          : 0;
+        const maintenanceRooms = maintenanceRes.ok
+          ? (await maintenanceRes.json()).length
+          : 0;
         const bookedRooms = bookedRes.ok ? (await bookedRes.json()).length : 0;
-        const maintenanceRooms = Math.max(0, totalRooms - availableRooms - bookedRooms);
 
         // 🔹 Booking & Payment Status Counts
-        const possibleBookingStatuses = ["Pending", "Checked-In", "Checked-Out", "Cancelled"];
+        const possibleBookingStatuses = [
+          "Pending",
+          "Checked-In",
+          "Checked-Out",
+          "Cancelled",
+        ];
         const possiblePaymentStatuses = ["Pending", "Paid", "Cancelled"];
 
-        const bookingStatusCounts = possibleBookingStatuses.reduce((acc, status) => {
-          acc[status] = bookingsList.filter((b) => b.status === status).length || 0;
-          return acc;
-        }, {});
+        const bookingStatusCounts = possibleBookingStatuses.reduce(
+          (acc, status) => {
+            acc[status] =
+              bookingsList.filter((b) => b.status === status).length || 0;
+            return acc;
+          },
+          {}
+        );
 
-        const paymentStatusCounts = possiblePaymentStatuses.reduce((acc, status) => {
-          acc[status] = bookingsList.filter((b) => b.paymentStatus === status).length || 0;
-          return acc;
-        }, {});
+        const paymentStatusCounts = possiblePaymentStatuses.reduce(
+          (acc, status) => {
+            acc[status] =
+              bookingsList.filter((b) => b.paymentStatus === status).length ||
+              0;
+            return acc;
+          },
+          {}
+        );
 
         // 🔹 Financial Enhancements
         const totalRevenue = summary?.totalRevenue || 0;

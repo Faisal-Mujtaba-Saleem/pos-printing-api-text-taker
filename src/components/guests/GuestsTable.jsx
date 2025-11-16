@@ -32,7 +32,7 @@ export default function GuestsTable() {
       setError(null);
       try {
         const res = await fetch("/api/v1/guests", { signal: ac.signal });
-        if (!res.ok && !res.status === 404)
+        if (!res.ok && res.status !== 404)
           throw new Error(`Failed to fetch guests (${res.status})`);
         const data = await res.json();
         setGuests(Array.isArray(data) ? data : data?.data || []);

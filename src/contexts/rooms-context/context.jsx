@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
 const RoomsContext = createContext();
@@ -9,6 +9,11 @@ export default function RoomsContextProvider({ children }) {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    console.log({ rooms });
+  }, [rooms])
+
 
   // Fetch rooms from API
   const fetchRooms = async () => {
@@ -19,9 +24,12 @@ export default function RoomsContextProvider({ children }) {
 
     try {
       const res = await fetch("/api/v1/rooms", { signal });
-      if (!res.ok && !res.status === 404)
+      if (!res.ok && res.status !== 404)
         throw new Error(`Failed to fetch rooms (${res.status})`);
+
       const data = await res.json();
+      console.log(data);
+      
       setRooms(Array.isArray(data) ? data : data?.data || []);
     } catch (err) {
       if (err.name !== "AbortError") setError(err.message || "Failed to load rooms");

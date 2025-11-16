@@ -1,10 +1,10 @@
 "use client";
 import React from "react";
-import DashboardSharedHeader from "@/components/DashboardSharedHeader";
-import DashboardStats from "@/components/DashboardStats";
-import DashboardCharts from "@/components/DashboardCharts";
-import RecentBookings from "@/components/RecentBookings";
-import ExportReportButton from "@/components/ExportReportButton";
+import DashboardSharedHeader from "@/components/shared/DashboardSharedHeader";
+import DashboardStats from "@/components/dashboard/DashboardStats";
+import DashboardCharts from "@/components/dashboard/DashboardCharts";
+import RecentBookings from "@/components/dashboard/RecentBookings";
+import ExportReportButton from "@/components/dashboard/ExportReportButton";
 import { AiOutlineDashboard } from "react-icons/ai";
 
 export default function Page() {
