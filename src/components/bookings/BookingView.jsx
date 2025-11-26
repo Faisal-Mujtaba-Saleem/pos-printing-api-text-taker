@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useActionState, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import Image from "next/image";
 import {
   Disclosure,
@@ -10,20 +11,10 @@ import {
 import { ChevronUpIcon } from "@heroicons/react/24/outline";
 import { formatCurrency } from "@/utlis/formatCurrency";
 import getFormattedDateTime from "@/utlis/date-time-utils/getFormattedDateTime";
-import { renderToStaticMarkup } from "react-dom/server";
-import { printBookingReceipt } from "@/app/actions/bookings.actions/printBookingReceiptAction";
-import { toast } from "react-toastify";
+import siteLogo from '@/assets/logo.png';
 
 export default function BookingView({ viewBooking }) {
   const [bookingReceipt, setBookingReceipt] = useState("");
-
-  const [state, printBookingReceiptAction] = useActionState(
-    printBookingReceipt,
-    {
-      success: false,
-      message: null
-    }
-  );
 
   useEffect(() => {
     const bookingReceiptData = {
@@ -52,135 +43,176 @@ export default function BookingView({ viewBooking }) {
     };
 
     const bookingReceiptJSX = (
-      <div className="bg-gray-100 flex items-center justify-center min-h-screen">
-        <div className="bg-white shadow-md rounded-lg p-6 w-full max-w-[700px] text-sm">
-          {/* Header */}
-          <div className="text-center border-b pb-3 mb-4">
-            <h2 className="text-xl font-semibold text-gray-800">
-              Hotel Booking Receipt
-            </h2>
-            <p className="text-xs text-gray-500">
-              Booking ID: {bookingReceiptData.bookingId} | Issued:{" "}
-              {bookingReceiptData.issuedAt}
-            </p>
-          </div>
+      <div className="receipt-root">
+        <style>{`
+        @page { size: A4; margin: 10mm; }
+        .a4-sheet { width: 210mm; min-height: 297mm; margin: 0 auto; box-shadow: none; }
+        @media print {
+        body { -webkit-print-color-adjust: exact; color-adjust: exact; }
+        .no-print { display: none !important; }
+        .a4-sheet { box-shadow: none !important; border-radius: 0 !important; margin: 0; }
+        }
+        /* small visual tweaks for screen */
+        .screen-card { max-width: 820px; margin: 18px auto; box-shadow: 0 6px 18px rgba(15,23,42,0.08); border-radius: 12px; overflow: hidden; }
+        .muted { color: #6b7280; } /* tailwind gray-500 fallback */
+      `}</style>
 
-          {/* Room Info */}
-          <div className="flex gap-4 mb-4 border-b pb-3">
-            <img
-              src={bookingReceiptData.room?.imageUrl}
-              alt={bookingReceiptData.room?.name}
-              className="w-[120px] h-[90px] object-cover rounded-md border"
-            />
-            <div>
-              <p className="font-semibold text-gray-800">
-                Room No: {bookingReceiptData.room?.roomNo}
-              </p>
-              <p>Room Name: {bookingReceiptData.room?.name}</p>
-              <p>Type: {bookingReceiptData.room?.type}</p>
-              <p>Capacity: {bookingReceiptData.room?.capacity} Guests</p>
+        <div className="a4-sheet print:bg-white">
+          <div className="screen-card bg-white print:bg-white">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+              <div className="flex items-center gap-4">
+                <img
+                  src={siteLogo.src || "/placeholder-room.jpg"}
+                  alt="hotel logo"
+                  className="w-14 h-14 rounded-md object-cover border border-white/20"
+                />
+                <div>
+                  <h1 className="text-lg font-semibold leading-tight">Elegant Stay Hotel</h1>
+                  <p className="text-xs opacity-90">Comfort • Convenience • Care</p>
+                </div>
+              </div>
+
+              <div className="text-right text-xs">
+                <div className="font-semibold">Receipt</div>
+                <div className="muted">Issued: {bookingReceiptData.issuedAt}</div>
+                <div className="mt-1 px-2 inline-block bg-white/10 rounded text-[11px]">
+                  ID: {bookingReceiptData.bookingId}
+                </div>
+              </div>
             </div>
-          </div>
 
-          {/* Primary Guest */}
-          <div className="mb-4">
-            <h3 className="font-semibold text-gray-800 border-b mb-2 pb-1 uppercase text-xs tracking-wide">
-              Primary Guest
-            </h3>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-              <p className="font-medium text-gray-700">Full Name:</p>
-              <p>{bookingReceiptData.primaryGuest?.fullName}</p>
+            <div className="px-6 py-6 print:px-8 print:py-6">
+              {/* Top section: room + booking summary */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="flex items-start gap-4 md:col-span-1">
+                  <img
+                    src={bookingReceiptData.room?.imageUrl || "/placeholder-room.jpg"}
+                    alt={bookingReceiptData.room?.name}
+                    className="w-28 h-20 object-cover rounded-md border"
+                  />
+                  <div className="flex-1">
+                    <div className="text-sm font-semibold">{bookingReceiptData.room?.name || "—"}</div>
+                    <div className="text-xs muted">Room No: {bookingReceiptData.room?.roomNo || "—"}</div>
+                    <div className="text-xs muted">Type: {bookingReceiptData.room?.type || "—"}</div>
+                    <div className="text-xs muted">Capacity: {bookingReceiptData.room?.capacity || "—"} Guests</div>
+                  </div>
+                </div>
 
-              <p className="font-medium text-gray-700">CNIC:</p>
-              <p>{bookingReceiptData.primaryGuest?.cnic}</p>
+                <div className="md:col-span-2 flex flex-col gap-2">
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <div className="text-xs muted">Check-In</div>
+                      <div className="font-medium">{bookingReceiptData.bookingDetails?.checkIn || "—"}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs muted">Check-Out</div>
+                      <div className="font-medium">{bookingReceiptData.bookingDetails?.checkOut || "—"}</div>
+                    </div>
 
-              <p className="font-medium text-gray-700">Contact:</p>
-              <p>{bookingReceiptData.primaryGuest?.contactNumber}</p>
+                    <div>
+                      <div className="text-xs muted">Booking Status</div>
+                      <div className="font-medium">{bookingReceiptData.bookingDetails?.status || "—"}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs muted">Payment Status</div>
+                      <div className="font-medium">
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs ${bookingReceiptData.payment?.status === "Paid"
+                            ? "bg-green-100 text-green-700"
+                            : bookingReceiptData.payment?.status === "Pending"
+                              ? "bg-yellow-100 text-yellow-700"
+                              : "bg-red-100 text-red-700"
+                            }`}
+                        >
+                          {bookingReceiptData.payment?.status || "—"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
 
-              <p className="font-medium text-gray-700">Email:</p>
-              <p>{bookingReceiptData.primaryGuest?.email}</p>
+                  <div className="mt-2 border-t pt-3 print:mt-2">
+                    <div className="text-xs muted">Primary Guest</div>
+                    <div className="flex items-center justify-between mt-1">
+                      <div className="text-sm">
+                        <div className="font-medium">{bookingReceiptData.primaryGuest?.fullName || "—"}</div>
+                        <div className="text-xs muted">{bookingReceiptData.primaryGuest?.email || "—"} • {bookingReceiptData.primaryGuest?.contactNumber || "—"}</div>
+                      </div>
+                      <div className="text-right text-xs muted">
+                        CNIC: {bookingReceiptData.primaryGuest?.cnic || "—"}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-              <p className="font-medium text-gray-700">Gender:</p>
-              <p>{bookingReceiptData.primaryGuest?.gender}</p>
+              {/* Other guests (if any) */}
+              {bookingReceiptData.otherGuests?.length > 0 && (
+                <div className="mt-5">
+                  <div className="text-xs muted uppercase tracking-wide">Other Guests</div>
+                  <ul className="mt-2 list-disc list-inside text-sm">
+                    {bookingReceiptData.otherGuests.map((g, i) => (
+                      <li key={i} className="print:text-gray-800">
+                        <span className="font-medium">{g.fullName || "—"}</span>
+                        <span className="muted"> — {g.gender || "—"} • CNIC: {g.cnic || "—"}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
-              <p className="font-medium text-gray-700">Address:</p>
-              <p>{bookingReceiptData.primaryGuest?.address}</p>
+              {/* Payment summary */}
+              <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+                <div className="md:col-span-2">
+                  <div className="text-xs muted uppercase tracking-wide">Notes</div>
+                  <div className="mt-2 text-sm muted">
+                    Please bring a valid ID during check-in. For cancellations or amendments, contact reception.
+                  </div>
+                </div>
+
+                <div className="bg-gray-50 border rounded-md p-4 md:col-span-1">
+                  <div className="text-xs muted uppercase">Payment Summary</div>
+
+                  <div className="mt-3 text-sm space-y-2">
+                    <div className="flex justify-between">
+                      <div className="muted">Total</div>
+                      <div className="font-semibold">
+                        {formatCurrency(bookingReceiptData.payment?.total || 0)}
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <div className="muted">Paid</div>
+                      <div className="font-medium text-green-700">
+                        {formatCurrency(bookingReceiptData.payment?.paid || 0)}
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between pt-2 border-t">
+                      <div className="muted">Remaining</div>
+                      <div className="font-semibold text-red-600">
+                        {formatCurrency(bookingReceiptData.payment?.remaining || 0)}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 text-center text-xs muted">Thank you for staying with us</div>
+                </div>
+              </div>
             </div>
-          </div>
 
-          {/* Other Guests */}
-          {bookingReceiptData.otherGuests?.length > 0 && (
-            <div className="mb-4">
-              <h3 className="font-semibold text-gray-800 border-b mb-2 pb-1 uppercase text-xs tracking-wide">
-                Other Guests
-              </h3>
-              <ul className="list-disc list-inside text-gray-700 space-y-1 ml-1">
-                {bookingReceiptData.otherGuests.map((guest, idx) => (
-                  <li key={idx}>
-                    {guest.fullName} – {guest.gender} – CNIC: {guest.cnic}
-                  </li>
-                ))}
-              </ul>
+            {/* Footer */}
+            <div className="px-6 py-4 bg-gray-50 flex items-center justify-between text-xs muted border-t">
+              <div>
+                <div className="font-semibold">Elegant Stay Hotel</div>
+                <div className="muted">123 Seaside Ave, City • +92 300 0000000 • info@elegantstay.example</div>
+              </div>
+
+              <div className="text-right">
+                <div className="text-xs muted">Receipt generated</div>
+                <div className="font-mono text-sm mt-1">{bookingReceiptData.bookingId}</div>
+              </div>
             </div>
-          )}
-
-          {/* Booking Details */}
-          <div className="mb-4">
-            <h3 className="font-semibold text-gray-800 border-b mb-2 pb-1 uppercase text-xs tracking-wide">
-              Booking Details
-            </h3>
-
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-              <p className="font-medium text-gray-700">Check-In:</p>
-              <p>{bookingReceiptData.bookingDetails?.checkIn}</p>
-
-              <p className="font-medium text-gray-700">Check-Out:</p>
-              <p>{bookingReceiptData.bookingDetails?.checkOut}</p>
-
-              <p className="font-medium text-gray-700">Status:</p>
-              <p>{bookingReceiptData.bookingDetails?.status}</p>
-            </div>
-          </div>
-
-          {/* Payment Info */}
-          <div className="mb-5">
-            <h3 className="font-semibold text-gray-800 border-b mb-2 pb-1 uppercase text-xs tracking-wide">
-              Payment Summary
-            </h3>
-
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-              <p className="font-medium text-gray-700">Total Amount:</p>
-              <p>PKR {bookingReceiptData.payment?.total}</p>
-
-              <p className="font-medium text-gray-700">Paid Amount:</p>
-              <p>PKR {bookingReceiptData.payment?.paid}</p>
-
-              <p className="font-medium text-gray-700">Remaining Balance:</p>
-              <p className="text-red-600">
-                PKR {bookingReceiptData.payment?.remaining}
-              </p>
-
-              <p className="font-medium text-gray-700">Payment Status:</p>
-              <p>
-                <span
-                  className={`px-2 py-1 text-xs rounded-full ${
-                    bookingReceiptData.payment?.status === "Paid"
-                      ? "bg-green-100 text-green-700"
-                      : bookingReceiptData.payment?.status === "Pending"
-                      ? "bg-yellow-100 text-yellow-700"
-                      : "bg-red-100 text-red-700"
-                  }`}
-                >
-                  {bookingReceiptData.payment?.status}
-                </span>
-              </p>
-            </div>
-          </div>
-
-          {/* Footer */}
-          <div className="text-center text-xs text-gray-500 border-t pt-3">
-            <p>Thank you for choosing our hotel!</p>
-            <p className="mt-1">We hope you enjoy your stay.</p>
           </div>
         </div>
       </div>
@@ -189,13 +221,20 @@ export default function BookingView({ viewBooking }) {
     setBookingReceipt(renderToStaticMarkup(bookingReceiptJSX));
   }, []);
 
-  useEffect(() => {
-    if(!!state.success){
-      toast.success(state.message)
-    } else{
-      toast.error(state.message)
-    }
-  }, [state])
+  const printReceipt = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("PRINT CLICKED");
+
+    if (typeof window === 'undefined') return; // safety: only run in browser
+
+    const { default: printJS } = await import('print-js');
+    printJS({
+      printable: bookingReceipt,
+      type: 'raw-html',
+      css: 'https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css',
+    });
+  }
 
   return (
     <div className="flex flex-col gap-3">
@@ -252,9 +291,8 @@ export default function BookingView({ viewBooking }) {
               <DisclosureButton className="flex justify-between w-full px-4 py-2 text-sm font-semibold text-left bg-gray-100 rounded-t-lg hover:bg-gray-200">
                 <span>Room Details</span>
                 <ChevronUpIcon
-                  className={`h-5 w-5 transform transition-transform duration-300 ${
-                    open ? "rotate-180" : ""
-                  }`}
+                  className={`h-5 w-5 transform transition-transform duration-300 ${open ? "rotate-180" : ""
+                    }`}
                 />
               </DisclosureButton>
               <DisclosurePanel className="px-4 py-3 text-sm text-gray-700 bg-white rounded-b-lg">
@@ -309,9 +347,8 @@ export default function BookingView({ viewBooking }) {
               <DisclosureButton className="flex justify-between w-full px-4 py-2 text-sm font-semibold text-left bg-gray-100 rounded-t-lg hover:bg-gray-200">
                 <span>Guest(s) Details</span>
                 <ChevronUpIcon
-                  className={`h-5 w-5 transform transition-transform duration-300 ${
-                    open ? "rotate-180" : ""
-                  }`}
+                  className={`h-5 w-5 transform transition-transform duration-300 ${open ? "rotate-180" : ""
+                    }`}
                 />
               </DisclosureButton>
               <DisclosurePanel className="px-4 py-3 text-sm text-gray-700 bg-white rounded-b-lg">
@@ -320,12 +357,11 @@ export default function BookingView({ viewBooking }) {
                     {viewBooking.guests.map((g, i) => (
                       <div
                         key={g._id || i}
-                        className={`${
-                          viewBooking.guests.length !== 1 &&
+                        className={`${viewBooking.guests.length !== 1 &&
                           i < viewBooking.guests.length - 1
-                            ? "border-b"
-                            : ""
-                        } pb-2`}
+                          ? "border-b"
+                          : ""
+                          } pb-2`}
                       >
                         <p>
                           <strong>Name:</strong> {g.fullName || "—"}
@@ -357,23 +393,12 @@ export default function BookingView({ viewBooking }) {
 
       {/* Print button (untouched) */}
       <div className="flex justify-end mt-4">
-        <form action={printBookingReceiptAction}>
-          <input
-            type="text"
-            name="booking_receipt"
-            id="booking_receipt"
-            value={bookingReceipt}
-            readOnly
-            hidden
-          />
-          <button
-            type="submit"
-            // onClick={() => window.print()}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
-          >
-            Print Reciept
-          </button>
-        </form>
+        <button
+          type="button" onClick={printReceipt}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
+        >
+          Print Receipt
+        </button>
       </div>
     </div>
   );

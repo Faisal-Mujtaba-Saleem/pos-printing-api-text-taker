@@ -20,6 +20,7 @@
     "nodemailer": "^7.0.10",
     "papaparse": "^5.5.3",
     "pdf-to-printer": "^5.6.1",
+    "print-js": "^1.6.0",
     "puppeteer": "^24.29.0",
     "react": "19.1.0",
     "react-datepicker": "^8.8.0",
